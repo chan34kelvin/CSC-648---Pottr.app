@@ -1,0 +1,2 @@
+yarn add react-video-js-player
+yarn add reactjs-media

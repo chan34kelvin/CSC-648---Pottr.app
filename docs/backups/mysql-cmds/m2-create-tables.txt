@@ -1,0 +1,186 @@
+
+CREATE TABLE IF NOT EXISTS `users` (
+  `userid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(16) NOT NULL,
+  `email` VARCHAR(64) NOT NULL,
+  `password` VARCHAR(128) NOT NULL,
+  `datecreated` DATETIME NOT NULL DEFAULT NOW(),
+  `balance` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`userid`),
+  UNIQUE INDEX `userid_UNIQUE` (`userid` ASC) VISIBLE,
+  UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE,
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `categories` (
+  `categoryid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(64) NOT NULL,
+  `picturepath` VARCHAR(128) NULL,
+  PRIMARY KEY (`categoryid`),
+  UNIQUE INDEX `categoryid_UNIQUE` (`categoryid` ASC) VISIBLE,
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `posts` (
+  `postid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(64) NOT NULL,
+  `datecreated` DATETIME NOT NULL DEFAULT NOW(),
+  `clippath` VARCHAR(128) NULL,
+  `fk_users_posts_userid` INT UNSIGNED NOT NULL,
+  `fk_categories_posts_categoryid` INT UNSIGNED NULL,
+  PRIMARY KEY (`postid`),
+  UNIQUE INDEX `postID_UNIQUE` (`postid` ASC) VISIBLE,
+  UNIQUE INDEX `clipPath_UNIQUE` (`clippath` ASC) VISIBLE,
+  INDEX `categoryID_idx` (`fk_categories_posts_categoryid` ASC) VISIBLE,
+  CONSTRAINT `fk_users_posts_userid`
+    FOREIGN KEY (`fk_users_posts_userid`)
+    REFERENCES `users` (`userid`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_categories_posts_categoryid`
+    FOREIGN KEY (`fk_categories_posts_categoryid`)
+    REFERENCES `categories` (`categoryid`)
+    ON DELETE SET NULL
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `subscriptions` (
+  `fk_users_subscriptions_userid` INT UNSIGNED NOT NULL,
+  `fk_categories_subscriptions_categoryid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`fk_users_subscriptions_userid`, `fk_categories_subscriptions_categoryid`),
+  INDEX `categoryid_idx` (`fk_categories_subscriptions_categoryid` ASC) VISIBLE,
+  CONSTRAINT `fk_users_subscriptions_userid`
+    FOREIGN KEY (`fk_users_subscriptions_userid`)
+    REFERENCES `users` (`userid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_categories_subscriptions_categoryid`
+    FOREIGN KEY (`fk_categories_subscriptions_categoryid`)
+    REFERENCES `categories` (`categoryid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `views` (
+  `fk_users_views_userid` INT UNSIGNED NULL,
+  `fk_posts_views_postid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`fk_posts_views_postid`),
+  INDEX `fk_users_views_userid_idx` (`fk_users_views_userid` ASC) VISIBLE,
+  CONSTRAINT `fk_users_views_userid`
+    FOREIGN KEY (`fk_users_views_userid`)
+    REFERENCES `users` (`userid`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_posts_views_postid`
+    FOREIGN KEY (`fk_posts_views_postid`)
+    REFERENCES `posts` (`postid`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `comments` (
+  `commentid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `text` VARCHAR(1024) NULL,
+  `fk_posts_comments_postid` INT UNSIGNED NOT NULL,
+  `fk_users_comments_userid` INT UNSIGNED NULL,
+  `datecreated` DATETIME NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (`commentid`),
+  UNIQUE INDEX `commentID_UNIQUE` (`commentid` ASC) VISIBLE,
+  INDEX `postid_idx` (`fk_posts_comments_postid` ASC) VISIBLE,
+  INDEX `userid_idx` (`fk_users_comments_userid` ASC) VISIBLE,
+  CONSTRAINT `fk_posts_comments_postid`
+    FOREIGN KEY (`fk_posts_comments_postid`)
+    REFERENCES `posts` (`postid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_users_comments_userid`
+    FOREIGN KEY (`fk_users_comments_userid`)
+    REFERENCES `users` (`userid`)
+    ON DELETE SET NULL
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `replies` (
+  `fk_comments_replies_replyid` INT UNSIGNED NOT NULL,
+  `fk_comments_replies_commentid` INT UNSIGNED NOT NULL,
+  INDEX `commentid_idx` (`fk_comments_replies_commentid` ASC) VISIBLE,
+  PRIMARY KEY (`fk_comments_replies_commentid`),
+  UNIQUE INDEX `commentid_UNIQUE` (`fk_comments_replies_commentid` ASC) VISIBLE,
+  INDEX `fk_comments_replies_replyid_idx` (`fk_comments_replies_replyid` ASC) VISIBLE,
+  CONSTRAINT `fk_comments_replies_commentid`
+    FOREIGN KEY (`fk_comments_replies_commentid`)
+    REFERENCES `comments` (`commentid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_comments_replies_replyid`
+    FOREIGN KEY (`fk_comments_replies_replyid`)
+    REFERENCES `comments` (`commentid`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `competitions` (
+  `compid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `starttime` DATETIME NOT NULL,
+  `endtime` DATETIME NOT NULL,
+  `prizepool` INT UNSIGNED NOT NULL,
+  `maxcompetitors` INT UNSIGNED NULL,
+  `entryfee` INT UNSIGNED NOT NULL DEFAULT 0,
+  `name` VARCHAR(64) NOT NULL,
+  `fk_categories_competitions_categoryid` INT UNSIGNED NULL,
+  `picturepath` VARCHAR(128) NULL,
+  PRIMARY KEY (`compid`),
+  UNIQUE INDEX `compid_UNIQUE` (`compid` ASC) VISIBLE,
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE,
+  INDEX `categoryid_idx` (`fk_categories_competitions_categoryid` ASC) VISIBLE,
+  CONSTRAINT `fk_categories_competitions_categoryid`
+    FOREIGN KEY (`fk_categories_competitions_categoryid`)
+    REFERENCES `categories` (`categoryid`)
+    ON DELETE SET NULL
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `entries` (
+  `fk_posts_entries_postid` INT UNSIGNED NOT NULL,
+  `fk_competitions_entries_compid` INT UNSIGNED NOT NULL,
+  `dateentered` DATETIME NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (`fk_posts_entries_postid`, `fk_competitions_entries_compid`),
+  INDEX `compid_idx` (`fk_competitions_entries_compid` ASC) VISIBLE,
+  CONSTRAINT `fk_posts_entries_postid`
+    FOREIGN KEY (`fk_posts_entries_postid`)
+    REFERENCES `posts` (`postid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_competitions_entries_compid`
+    FOREIGN KEY (`fk_competitions_entries_compid`)
+    REFERENCES `competitions` (`compid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `votes` (
+  `voteid` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `fk_posts_votes_postid` INT UNSIGNED NOT NULL,
+  `fk_users_votes_userid` INT UNSIGNED NOT NULL,
+  `fk_competitions_votes_compid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`voteid`),
+  UNIQUE INDEX `voteid_UNIQUE` (`voteid` ASC) VISIBLE,
+  INDEX `postid_idx` (`fk_posts_votes_postid` ASC) VISIBLE,
+  INDEX `userid_idx` (`fk_users_votes_userid` ASC) VISIBLE,
+  INDEX `compid_idx` (`fk_competitions_votes_compid` ASC) VISIBLE,
+  CONSTRAINT `fk_posts_votes_postid`
+    FOREIGN KEY (`fk_posts_votes_postid`)
+    REFERENCES `posts` (`postid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_users_votes_userid`
+    FOREIGN KEY (`fk_users_votes_userid`)
+    REFERENCES `users` (`userid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_competitions_votes_compid`
+    FOREIGN KEY (`fk_competitions_votes_compid`)
+    REFERENCES `competitions` (`compid`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;

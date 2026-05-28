@@ -1,0 +1,39 @@
+{
+  "name": "csc648-fa21-04-team01",
+  "version": "1.0.0",
+  "description": "Pottr.app Team Repo",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "concurrently --kill-others \"npm run frontend\" \"npm run backend\"",
+    "test": "cd application/backend && echo \"Error: no test specified\" && exit 1",
+    "frontend": "cd application/frontend && npm start",
+    "backend": "cd application/backend && npm run start",
+    "start:dev": "concurrently --kill-others \"npm run frontend\" \"npm run backend\"",
+    "install:app": "concurrently --kill-others \"npm run install:frontend\" \"npm run install:backend\"",
+    "install:frontend": "cd application/frontend && npm i",
+    "install:backend": "cd application/backend && npm i"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CSC-648-SFSU/csc648-fa21-04-team01.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CSC-648-SFSU/csc648-fa21-04-team01/issues"
+  },
+  "homepage": "https://github.com/CSC-648-SFSU/csc648-fa21-04-team01#readme",
+  "dependencies": {
+    "nodemon": "^2.0.14",
+    "react": "^17.0.2"
+  },
+  "devDependencies": {
+    "concurrently": "^6.3.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "2.4.1"
+  }
+}
